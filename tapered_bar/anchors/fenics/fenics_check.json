@@ -1,0 +1,47 @@
+{
+  "environment": {
+    "python": "3.11.17",
+    "dolfinx": "0.11.0",
+    "ufl": "2026.1.0"
+  },
+  "model": {
+    "E_Pa": 200000000000.0,
+    "nu": 0.3,
+    "thickness_m": 0.1,
+    "P_N": 1000.0,
+    "note": "2-D plane stress, P2 triangles, uniform end traction t=P/(b h(L)) applied as a boundary integral, left end clamped"
+  },
+  "cases": {
+    "S0": {
+      "case": "S0",
+      "beta": 0.0,
+      "h0": 0.2,
+      "mesh": "80x16",
+      "element": "P2 triangles (plane stress)",
+      "nnodes": 1377,
+      "u_end": 2.4938081040742497e-07,
+      "u_end_exact_1d": 2.4999999999999994e-07,
+      "sigma_mid": 49999.99999994021,
+      "sigma_exact_1d_mid": 49999.99999999999,
+      "u_end_theory": 2.5e-07,
+      "sigma_theory": 50000.0
+    },
+    "S1": {
+      "case": "S1",
+      "beta": 1.0,
+      "h0": 0.2,
+      "mesh": "80x16",
+      "element": "P2 triangles (plane stress)",
+      "nnodes": 1377,
+      "u_end": 1.7424330943446121e-07,
+      "u_end_exact_1d": 1.7328679513998628e-07,
+      "sigma_mid": 33445.11589616692,
+      "sigma_exact_1d_mid": 33333.33333333333,
+      "ccx_cps8_reference_u_end": 1.7423825104166667e-07,
+      "ccx_reference_mesh": "240x48",
+      "u_end_vs_ccx_pct": 0.002903147135779882,
+      "u_end_vs_1d_pct": 0.5519833716713496
+    }
+  },
+  "status": "ok"
+}

@@ -1,0 +1,35 @@
+\section{复现命令与文件清单}
+
+\subsection*{A.1 复现命令}
+
+在项目根目录 \texttt{tapered\_bar} 下依次执行：
+\begin{verbatim}
+python3 tests/test_core.py
+python3 tests/test_bar.py
+python3 tests/test_q4.py
+python3 tests/test_cst.py
+python3 tests/test_ccx.py
+python3 scripts/run_bar.py
+python3 scripts/run_q4.py
+python3 scripts/run_cst.py
+python3 scripts/run_ccx.py
+python3 scripts/run_study.py
+python3 scripts/make_figures.py
+python3 scripts/make_latex_figures.py
+python3 scripts/make_latex_tables.py
+\end{verbatim}
+LaTeX 报告在 \texttt{latex/} 下用 XeLaTeX 编译：
+\begin{verbatim}
+cd latex && xelatex main.tex && xelatex main.tex
+\end{verbatim}
+
+\subsection*{A.2 文件清单}
+
+\begin{itemize}[leftmargin=1.6em,itemsep=0.15em]
+  \item \texttt{fem/}：共享核心与三种方法（\texttt{config, analytic, mesh, assembly, post, bar, q4, cst}）。
+  \item \texttt{scripts/}：各方法驱动、统一研究、图表与 LaTeX 表格生成。
+  \item \texttt{anchors/calculix/}：CalculiX 输入生成、运行与解析；\texttt{anchors/fenics/}：FEniCS 可选校核。
+  \item \texttt{results/study\_*.csv}：统一口径的位移、应力、探针、收敛结果；\texttt{results/ccx\_*}：锚点与参考解。
+  \item \texttt{figures/}：报告图；\texttt{latex/figures/}：LaTeX 使用的副本与新产出形态图。
+  \item \texttt{latex/main.tex}、\texttt{latex/sections/*.tex}、\texttt{latex/tables/*.tex}：本报告源文件。
+\end{itemize}

@@ -1,0 +1,126 @@
+\section{理论与方法}
+
+\subsection{一维变截面杆单元}
+
+轴力沿杆轴守恒，$N(x)=P$，于是名义应力、应变和位移为
+\begin{gather}
+  \sigma(x)=\frac{P}{A(x)},\qquad
+  \varepsilon(x)=\frac{P}{E A(x)},\qquad
+  A(x)=b\,h(x), \label{eq:1d-fields}\\
+  u(x)=\int_0^x \frac{P}{E A(s)}\,\dd s
+      =\frac{P L}{E b h_0\beta}\ln\!\left(1+\beta\frac{x}{L}\right)
+      \quad(\beta\neq0), \label{eq:1d-u}
+\end{gather}
+$\beta=0$ 时式~\eqref{eq:1d-u} 的极限为 $u=Px/(E b h_0)$。
+
+两节点杆单元只有轴向自由度。若单元内轴力为常数 $N_e$，端部相对位移由柔度积分给出
+\begin{equation}
+  \Delta u_e=N_e\int_{x_1}^{x_2}\frac{\dd x}{E A(x)},
+  \qquad
+  k_e=\left[\int_{x_1}^{x_2}\frac{\dd x}{E A(x)}\right]^{-1}
+      =\frac{E A_0\beta}{L\ln\!\big[(1+\beta x_2/L)/(1+\beta x_1/L)\big]},
+  \label{eq:bar-k}
+\end{equation}
+$\beta\to0$ 时 $k_e\to EA_0/(x_2-x_1)$。对线性 $A(x)$，式~\eqref{eq:bar-k} 等价于面积的对数平均 $A_{\log}=(A_2-A_1)/\ln(A_2/A_1)$；常见的“平均面积刚度”则使用算术平均 $A_{\rm mean}=(A_1+A_2)/2$。由于 $A_{\rm mean}\ge A_{\log}$，平均面积法会高估刚度：$\beta=1$、整杆一个单元时 $k_{\rm mean}/k_e\approx1.0397$，端位移低估约 $3.8\%$。
+
+采用精确柔度积分后，各单元承受同一轴力 $P$，沿杆串联得到
+\begin{equation}
+  u(x_i)=\sum_{e\le i}\frac{P}{k_e}=\int_0^{x_i}\frac{P}{E A(s)}\,\dd s,
+  \label{eq:bar-exact}
+\end{equation}
+即节点位移与网格无关、与解析解一致。这个性质把“等效刚度是否正确”与“网格是否足够密”分离开，是杆单元在本问题中的核心优势。
+
+\textbf{一维适用性判据。}楔形的几何小参数是锥角正切
+\begin{equation}
+  \eta=\left|\frac{\dd h}{\dd x}\right|=\frac{|\beta|h_0}{L}=\tan\alpha .
+  \label{eq:eta}
+\end{equation}
+本文取 A 级 $\eta\le0.20$（$\alpha\le11.3^\circ$）、B 级 $0.20<\eta\le0.40$、C 级 $\eta>0.40$。阈值由二维数值解的后验误差标定：A 级内部/中截面偏差一般小于 $0.5\%$、端部边界层约 $1\%$；B 级内部约 $1\%$、端部可达 $4\%$；C 级内部数个百分点、端部接近 $10\%$。
+
+\subsection{Q4 双线性等参元}
+
+四节点四边形在自然坐标 $(\xi,\eta)\in[-1,1]^2$ 内采用双线性形函数
+\begin{equation}
+  N_i(\xi,\eta)=\frac14(1+\xi_i\xi)(1+\eta_i\eta),\qquad
+  (\xi_i,\eta_i)\in\{(-1,-1),(1,-1),(1,1),(-1,1)\}.
+\end{equation}
+等参映射为 $\mathbf{x}=\sum_iN_i\mathbf{x}_i$，雅可比矩阵 $\bJ$、应变矩阵 $\bB$（$3\times8$）与平面应力本构矩阵 $\bD$ 均为标准形式：
+\begin{equation}
+  \bB_i=\begin{bmatrix}
+    \partial N_i/\partial x & 0\\
+    0 & \partial N_i/\partial y\\
+    \partial N_i/\partial y & \partial N_i/\partial x
+  \end{bmatrix},\qquad
+  \bD=\frac{E}{1-\nu^2}
+  \begin{bmatrix}
+    1 & \nu & 0\\
+    \nu & 1 & 0\\
+    0 & 0 & (1-\nu)/2
+  \end{bmatrix}.
+\end{equation}
+单元刚度采用 $2\times2$ 高斯全积分：
+\begin{equation}
+  \bke=\int_{-1}^{1}\int_{-1}^{1}\bB^{\mathrm T}\bD\bB\,t\,|\bJ|\,\dd\xi\,\dd\eta
+      \approx\sum_{q=1}^{4}\bB_q^{\mathrm T}\bD\bB_q\,t\,|\bJ_q|.
+  \label{eq:q4-ke}
+\end{equation}
+本文不引入减缩积分。后处理在每个高斯点计算 $\bsig_q=\bD\bB_q\bu_e$，再按 $x$ 列取截面平均。
+
+为评价单元对\textbf{应力梯度}的复现能力，定义梯度保真误差
+\begin{equation}
+  e_{\rm grad}=
+  \frac{\left\|\dfrac{\dd\bar{\sigma}_x}{\dd x}-\dfrac{\dd\bar{\sigma}_{x,\rm ref}}{\dd x}\right\|}
+       {\left\|\dfrac{\dd\bar{\sigma}_{x,\rm ref}}{\dd x}\right\|},
+  \label{eq:egrad}
+\end{equation}
+在 $x=0.1L,\ldots,0.9L$ 上用二阶中心差分计算，参考梯度取 CalculiX CPS8 细网格。分子与分母使用同一差分算子，截断误差主项大部分抵消。另定义剪切能比
+\begin{equation}
+  R_s=\frac{\int(\sigma_y^2+\tau_{xy}^2)\,\dd V}{\int\sigma_x^2\,\dd V},
+  \label{eq:Rs}
+\end{equation}
+作为截面应力偏离单轴应力状态的能量度量，用于辅助一维判据。
+
+\subsection{CST 常应变三角形}
+
+三节点线性位移插值给出常数应变矩阵 $\bB$（$3\times6$）与显式刚度
+\begin{equation}
+  \bke=t\,|A|\,\bB^{\mathrm T}\bD\bB,\qquad
+  \bsig_e=\bD\bB\bu_e,
+  \label{eq:cst}
+\end{equation}
+其中 $|A|$ 为三角形面积。CST 满足完备性与分片试验，但常应变假设使其偏刚，且应力场分段常数、跨单元不连续。
+
+\textbf{面积加权节点恢复。}对共享节点的所有单元作面积加权平均
+\begin{equation}
+  \bsig_{\rm node}
+  =\frac{\sum_{e\ni n}A_e\,\bsig_e}{\sum_{e\ni n}A_e},
+  \label{eq:recovery}
+\end{equation}
+在常应力场中该式精确成立。恢复后的节点应力用于沿轴剖面、截面内离散度与对角线对比，并与未加权算术恢复对照。
+
+\textbf{对角线敏感性与镜像不变量。}矩形网格每个四边形可沿两条对角线之一剖分。本文几何、材料、约束和载荷都关于 $y=0$ 对称，因此两种剖分的解互为镜像：
+\begin{equation}
+  u_{x,\rm pos}(x,y)=u_{x,\rm neg}(x,-y),\qquad
+  \sigma_{x,\rm pos}(x,y)=\sigma_{x,\rm neg}(x,-y),\qquad
+  \tau_{xy,\rm pos}(x,y)=-\tau_{xy,\rm neg}(x,-y).
+  \label{eq:mirror}
+\end{equation}
+于是 $u_{\rm end}$、$u_{\rm mid}$、截面平均应力、总能量和反力在两种剖分下严格相等（数值上到舍入误差）。这不是“对角线不敏感”，而是对称性带来的不变量；真正的敏感性在局部场。本文用
+\begin{align}
+  D_{\sigma,\rm el}&=\frac{\sqrt{\frac1{N_e}\sum_e(\sigma_{x,e,\rm pos}-\sigma_{x,e,\rm neg})^2}}
+                          {\sqrt{\frac1{N_e}\sum_e\sigma_{x,e,\rm nom}^2}},\label{eq:Delem}\\
+  D_{\sigma,\rm node}&=\frac{\sqrt{\frac1{N_n}\sum_n(\sigma_{x,n,\rm pos}-\sigma_{x,n,\rm neg})^2}}
+                            {\frac1{N_n}\sum_n\sigma_{x,n,\rm pos}}\label{eq:Dnode}
+\end{align}
+量化局部敏感性，并统计截面内节点应力的离散系数 $CV=\mathrm{std}/\mathrm{mean}$，比较 raw 单元常应力、面积加权恢复与算术恢复。
+
+\subsection{第三方锚点与误差口径}
+
+CalculiX~\cite{dhondt2023} 模型直接复用共享网格的节点与四边形：CPS4/CPS8 平面应力单元；厚度由 \texttt{*SOLID} \texttt{SECTION} 第二行给定为 $0.1\,\mathrm{m}$，\texttt{*ELASTIC} 取 $E=2.0\times10^{11}\,\mathrm{Pa}$、$\nu=0.3$；左端全约束，右端施加与自研程序一致的一致面力节点载荷。CPS8 的 $240\times48$ 网格作为二维参考，并用 $80\times16$、$160\times32$ 做参考收敛检查；CPS4 在 $20\times4$ 至 $160\times32$ 上与自研 Q4 做同网格锚点对比。FEniCS/dolfinx 0.11~\cite{alnaes2015,fenicsx} 以 P2 三角形做可选本构校核。
+
+端/中截面位移采用\textbf{面积加权（梯形权重）}平均
+\begin{equation}
+  \bar u(x)=\frac1{h(x)}\int_{-h(x)/2}^{h(x)/2}u_x(x,y)\,\dd y,
+  \label{eq:ubar}
+\end{equation}
+不使用节点算术平均，因为含边中点时端点权重不对，会引入 $O(1/n_y)$ 的虚假偏差。相对误差统一为 $e=|a-b|/|b|$。收敛阶由 $\log e$--$\log h$ 在 $40\times8$、$80\times16$、$160\times32$ 三个网格上线性拟合。应力误差分两类：截面平均应力误差主要检验平衡与积分一致性，探针点应力误差则检验二维应力分布。探针点取 $x/L=0.1,0.2,0.5,0.8,0.9$ 与 $y/h=0,\pm1/4$，参考值取 CPS8 $240\times48$ 的对应节点。

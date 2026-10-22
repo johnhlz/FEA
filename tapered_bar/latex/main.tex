@@ -1,0 +1,96 @@
+% !TeX program = xelatex
+% !TeX encoding = UTF-8
+\documentclass[UTF8,fontset=none,a4paper,11pt]{ctexart}
+
+% ---------- fonts ----------
+\usepackage{fontspec}
+\setCJKmainfont{Noto Serif CJK SC}[BoldFont={Noto Serif CJK SC Bold}]
+\setCJKsansfont{Noto Sans CJK SC}[BoldFont={Noto Sans CJK SC Bold}]
+\setCJKmonofont{Noto Sans Mono CJK SC}
+
+% ---------- layout ----------
+\usepackage[a4paper,top=2.3cm,bottom=2.3cm,left=2.2cm,right=2.2cm]{geometry}
+\usepackage{amsmath,amssymb,bm}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{siunitx}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{makecell}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage[hidelinks]{hyperref}
+
+\sisetup{
+  detect-all,
+  table-number-alignment=center,
+  group-separator={\,},
+  group-minimum-digits=4,
+  exponent-product=\times,
+  output-exponent-marker=\mathrm{e},
+  retain-explicit-plus=true,
+}
+\captionsetup{font=small,labelfont=bf,labelsep=quad}
+\setlength{\parindent}{2em}
+\setlength{\parskip}{0.25em}
+\linespread{1.18}
+\setlength{\headheight}{13pt}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\sffamily 楔形变截面矩形拉杆：三种有限元方法与开源锚点}
+\fancyhead[R]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\ctexset{
+  section/format = \Large\bfseries\sffamily,
+  subsection/format = \large\bfseries\sffamily,
+  subsubsection/format = \normalsize\bfseries\sffamily,
+}
+
+% ---------- symbols ----------
+\newcommand{\dd}{\mathrm{d}}
+\newcommand{\ee}{\mathrm{e}}
+\newcommand{\bB}{\mathbf{B}}
+\newcommand{\bD}{\mathbf{D}}
+\newcommand{\bJ}{\mathbf{J}}
+\newcommand{\bK}{\mathbf{K}}
+\newcommand{\bF}{\mathbf{F}}
+\newcommand{\bU}{\mathbf{U}}
+\newcommand{\bke}{\mathbf{k}_e}
+\newcommand{\beps}{\boldsymbol{\varepsilon}}
+\newcommand{\bsig}{\boldsymbol{\sigma}}
+\newcommand{\bu}{\mathbf{u}}
+
+\title{\bfseries 楔形变截面矩形拉杆的三种有限元方法与开源锚点对比}
+\author{一维变截面杆单元 \quad/\quad Q4 平面应力等参元 \quad/\quad CST 常应变三角形}
+\date{2026 年 10 月}
+
+\begin{document}
+
+\maketitle
+\thispagestyle{empty}
+
+\input{sections/00_abstract}
+
+\newpage
+\tableofcontents
+\newpage
+
+\input{sections/01_intro}
+\input{sections/02_theory}
+\input{sections/03_forms}
+\input{sections/04_implementation}
+\input{sections/05_results}
+\input{sections/06_discussion}
+\input{sections/07_conclusion}
+
+\appendix
+\input{sections/08_appendix}
+
+\input{sections/99_refs}
+
+\end{document}

@@ -1,0 +1,21 @@
+\section{三种方法的产出形态对比}
+\label{sec:forms}
+
+三种方法最本质的差别并不只在数值精度，而在\textbf{产出形态}：一维杆只给出一条轴向曲线，Q4 给出连续二维场，CST 给出分块常应力场。表~\ref{tab:forms} 从未知量、应力表示、主要产出和后处理能力四个维度归纳这一差异；图~\ref{fig:forms} 用同一 S1 工况、同一 $40\times8$ 网格并排展示三种产出。
+
+\begin{table}[htbp]
+  \centering
+  \caption{三种方法的产出形态对比。表中的“信息量”指对截面内应力分布与端部局部变形的描述能力，而非数值精度。}
+  \label{tab:forms}
+  \footnotesize
+  \input{tables/tab_forms}
+\end{table}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{figures/fig_production_forms.pdf}
+  \caption{同一 S1 工况（$40\times8$）下三种方法的产出形态。现象：杆单元只产生 $u(x)$、$\sigma(x)$ 两条一维曲线；Q4 云图在单元内与跨单元均连续；CST raw 云图呈明显分块，块界即单元边界。解读：曲线形式自由度最省、信息量最低，适合一维杆系快速估算；Q4 的双线性插值与高斯点应力给出连续场，适合光滑应力场与端部复核；CST 的常应变假设导致分块，需面积加权节点恢复或更密网格才能得到平滑场，这也是后文单独量化对角线离散度的原因。}
+  \label{fig:forms}
+\end{figure}
+
+产出形态差异带来三点直接后果。第一，评价指标必须与产出形态匹配：杆单元应比较截面平均位移/应力与一维判据，Q4/CST 则应比较二维点值或全场误差；若只用端部位移，会掩盖 CST 局部应力的分块误差。第二，CST 的“raw 云图”不能直接作为应力结果使用，面积加权节点恢复或更密网格是必要的后处理；本文因此同时报告 raw 与 recovered 两套剖面。第三，若工程只关心轴力与截面平均应力，一维杆的曲线已足够；若关心端部应力集中、楔形边缘的横向应力或局部屈服，则必须使用 Q4 或更密 CST。图~\ref{fig:forms}(b) 与 (c) 的视觉差异，正是第~\ref{sec:results} 节精度差异的直观来源。

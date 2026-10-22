@@ -1,0 +1,13 @@
+\section{程序实现与验证}
+
+\subsection{程序结构}
+
+程序用 Python+NumPy/SciPy 从零实现，不调用现成有限元库。共享核心负责几何、网格、稀疏组装与边界处理，三种方法各自维护单元刚度与后处理：\texttt{fem/config.py} 定义几何、材料、工况与站位；\texttt{fem/analytic.py} 给出一维解析解与闭式等效刚度；\texttt{fem/mesh.py} 生成关于杆轴对称的结构化楔形网格及 Q4/CST 两种剖分；\texttt{fem/assembly.py} 完成稀疏组装、Dirichlet 消元与一致端载；\texttt{fem/post.py} 实现面积加权的截面平均位移；\texttt{fem/bar.py}、\texttt{fem/q4.py}、\texttt{fem/cst.py} 分别实现三种方法；\texttt{anchors/calculix} 负责 CalculiX 输入生成、运行与 \texttt{.dat/.frd} 解析，\texttt{anchors/fenics} 为可选本构校核。所有结果由 \texttt{scripts/} 下的驱动脚本一键复现。
+
+\subsection{验证}
+
+下列校核全部通过（67 项自动测试）：解析极限（$\beta=0$ 时一维解等于 $PL/(EA)$、等效刚度退化为 $EA/L$、柔度串联可加）；Q4/CST 常应变分片试验（线性位移场下应力等于 $\bD\beps$）；刚体平移零应力；反力校核（固定端反力等于 $-P$，Q4/CST 最大相对误差约 $10^{-12}$）；杆单元节点精确性（与解析解差约 $10^{-13}$）；CST 镜像不变量（两种对角线剖分的 $u_{\rm end}$、$u_{\rm mid}$、截面平均应力差约 $10^{-11}\%$）。这些校核保证后续差异来自离散方法本身，而非实现错误。
+
+\subsection{与 CalculiX 的同网格交叉校核}
+
+同网格 CPS4 与自研 Q4 的端位移相对差最大 $0.049\%$（均值 $0.017\%$），截面平均应力差小于 $0.006\%$；同网格 CST 与 CPS4 的端位移差在粗网格最大 $0.46\%$，到 $160\times32$ 降到 $0.001\%$ 量级。差异来自 CalculiX 平面应力单元的内部三维展开与厚度积分细节，属于锚点可接受范围。FEniCS 的 P2 三角形结果进一步独立验证了 S0/S1 的位移与应力量级（见 \S\ref{sec:fenics}）。
