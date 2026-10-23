@@ -14,7 +14,7 @@
     xelatex main.tex
     xelatex main.tex
 
-需要 ctex、xeCJK、booktabs、siunitx、caption、geometry、amsmath、graphicx、fancyhdr、hyperref 等 TeX 包。
+需要 ctex、xeCJK、booktabs、siunitx、caption、geometry、amsmath、graphicx、listings、fancyhdr、hyperref 等 TeX 包。
 
 ## 结果在哪
 
