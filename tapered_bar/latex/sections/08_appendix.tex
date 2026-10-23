@@ -115,7 +115,9 @@ def cst_ke_batch(B, area, D, thickness):
 端/中截面平均位移按实际节点 $y$ 坐标做梯形积分，而不是对节点值做算术平均；后者带有 $O(1/n_y)$ 的估计偏差。
 
 \begin{lstlisting}
-def column_trapezoid_weights(mesh, nodes):
+def column_trapezoid_weights(mesh, nodes=None):
+    if nodes is None:
+        raise ValueError("nodes required")
     nodes = np.asarray(nodes, dtype=int)
     ys = mesh.nodes[nodes, 1]
     order = np.argsort(ys)
