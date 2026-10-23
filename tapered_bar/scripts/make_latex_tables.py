@@ -63,14 +63,14 @@ def write(name, body):
     print("wrote", path)
 
 # T1 parameters
-write("tab_params.tex", r"""\begin{tabular}{@{}llS[table-format=1.1e-2]l@{}}
+write("tab_params.tex", r"""\begin{tabular}{@{}llll@{}}
 \toprule
 参数 & 符号 & {取值} & 单位 \\
 \midrule
 杆长 & $L$ & 1.0 & m \\
 固定端高度 & $h_0$ & 0.2 & m \\
 面外厚度 & $b$ & 0.1 & m \\
-弹性模量 & $E$ & 2.0e11 & Pa \\
+弹性模量 & $E$ & $2.0\times10^{11}$ & Pa \\
 泊松比 & $\nu$ & 0.3 & -- \\
 端部总拉力 & $P$ & 1000 & N \\
 平面应力厚度 & $t=b$ & 0.1 & m \\

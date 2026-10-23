@@ -18,6 +18,6 @@
 
 ## 结果在哪
 
-- main.pdf：19 页 A4 报告。
+- main.pdf：21 页 A4 报告。
 - 数值来源：../results/study_runs.csv、study_profiles.csv、study_convergence.csv、ccx_reference.json。
 - 表格生成：scripts/make_latex_tables.py；新图生成：scripts/make_latex_figures.py。

@@ -33,3 +33,124 @@ cd latex && xelatex main.tex && xelatex main.tex
   \item \texttt{figures/}：报告图；\texttt{latex/figures/}：LaTeX 使用的副本与新产出形态图。
   \item \texttt{latex/main.tex}、\texttt{latex/sections/*.tex}、\texttt{latex/tables/*.tex}：本报告源文件。
 \end{itemize}
+
+\section{关键代码实现}
+
+下面给出三种方法和两处关键后处理的实现节选，完整文件、测试与结果都在开源仓库中。代码保留了实际计算流程，只省略了部分类型标注和诊断字段。
+
+\subsection*{B.1 一维杆：柔度积分等效刚度}
+
+等效刚度由柔度积分闭式得到，而不是用平均面积近似。这样节点位移与一维解析解在机器精度内一致，离散误差只来自后续的 Q4/CST 二维模型。
+
+\begin{lstlisting}
+def exact_compliance(geom, mat, x1, x2):
+    L, beta, A0 = geom.L, geom.beta, geom.A0
+    if abs(beta) < 1e-14:
+        return (x2 - x1) / (mat.E * A0)
+    return L / (mat.E * A0 * beta) * np.log(
+        (1.0 + beta * x2 / L) / (1.0 + beta * x1 / L)
+    )
+
+def bar_equiv_stiffness(geom, mat, x1, x2):
+    return 1.0 / exact_compliance(geom, mat, x1, x2)
+\end{lstlisting}
+
+\subsection*{B.2 Q4：2x2 高斯全积分}
+
+每个单元在四个高斯点上计算 Jacobian、应变矩阵和 $B^{\mathrm T}DB$，再按权重、$\det J$ 与厚度累加。这里保留全积分，不使用减缩积分。
+
+\begin{lstlisting}
+def q4_element(nodes_xy, D, thickness=1.0, n_gauss=2):
+    if n_gauss != 2:
+        raise ValueError("Q4 module is restricted to 2x2 full integration")
+    nodes_xy = np.asarray(nodes_xy, dtype=float)
+    D = np.asarray(D, dtype=float)
+    ke = np.zeros((8, 8))
+    Bs = np.empty((4, 3, 8))
+    detJs = np.empty(4)
+    gxy = np.empty((4, 2))
+    for g, (xi, eta) in enumerate(GAUSS_POINTS_2X2):
+        N, dN = shape_q4(xi, eta)
+        J, detJ, invJ, G = jacobian(nodes_xy, dN)
+        B = b_matrix(G[:, 0], G[:, 1])
+        w = GAUSS_WEIGHTS_2X2[g]
+        ke += w * detJ * thickness * (B.T @ D @ B)
+        Bs[g] = B
+        detJs[g] = detJ
+        gxy[g] = N @ nodes_xy
+    info = dict(B=Bs, detJ=detJs, gauss_xy=gxy,
+                weights=GAUSS_WEIGHTS_2X2, local_gauss=GAUSS_POINTS_2X2,
+                D=D, thickness=thickness)
+    return ke, info
+\end{lstlisting}
+
+\subsection*{B.3 CST：显式刚度与常应变}
+
+三角形内应变恒定，$B$ 只由节点坐标决定；刚度不需要数值积分，直接由 $t|A|B^{\mathrm T}DB$ 得到。
+
+\begin{lstlisting}
+def cst_B_batch(xy, det):
+    x, y = xy[..., 0], xy[..., 1]
+    b = np.stack([y[:, 1] - y[:, 2], y[:, 2] - y[:, 0],
+                  y[:, 0] - y[:, 1]], axis=1)
+    c = np.stack([x[:, 2] - x[:, 1], x[:, 0] - x[:, 2],
+                  x[:, 1] - x[:, 0]], axis=1)
+    inv = 1.0 / det
+    B = np.zeros((xy.shape[0], 3, 6))
+    B[:, 0, 0::2] = b * inv[:, None]
+    B[:, 1, 1::2] = c * inv[:, None]
+    B[:, 2, 0::2] = c * inv[:, None]
+    B[:, 2, 1::2] = b * inv[:, None]
+    return B
+
+def cst_ke_batch(B, area, D, thickness):
+    A = np.abs(area)
+    return thickness * A[:, None, None] * np.einsum(
+        "nki,kl,nlj->nij", B, D, B
+    )
+\end{lstlisting}
+
+\subsection*{B.4 截面平均位移：梯形权重}
+
+端/中截面平均位移按实际节点 $y$ 坐标做梯形积分，而不是对节点值做算术平均；后者带有 $O(1/n_y)$ 的估计偏差。
+
+\begin{lstlisting}
+def column_trapezoid_weights(mesh, nodes):
+    nodes = np.asarray(nodes, dtype=int)
+    ys = mesh.nodes[nodes, 1]
+    order = np.argsort(ys)
+    nodes = nodes[order]
+    w = np.ones(nodes.size, dtype=float)
+    if nodes.size > 1:
+        w[0] = w[-1] = 0.5
+    return nodes, w
+
+def section_average_u(mesh, U, column):
+    nodes = mesh.column_nodes(int(column))
+    nodes, w = column_trapezoid_weights(mesh, nodes)
+    ux = np.asarray(U, dtype=float)[2 * nodes]
+    return float(np.sum(w * ux) / np.sum(w))
+\end{lstlisting}
+
+\newpage
+\subsection*{B.5 端部一致节点载荷}
+
+均布轴向拉力按边段长度分配到端节点，角点获得相邻边段载荷的一半；这与 CalculiX 的一致面力口径相同。
+
+\begin{lstlisting}
+def end_load_vector(mesh, P, mode="consistent"):
+    F = np.zeros(mesh.ndof)
+    right = mesh.right_nodes
+    if mode == "lumped":
+        F[2 * right] = P / right.size
+        return F
+    if mode != "consistent":
+        raise ValueError("mode must be 'consistent' or 'lumped'")
+    ys = mesh.nodes[right, 1]
+    hL = float(mesh.geom.h(mesh.geom.L))
+    seg = np.diff(ys)
+    loads = P * seg / hL
+    F[2 * right[:-1]] += 0.5 * loads
+    F[2 * right[1:]] += 0.5 * loads
+    return F
+\end{lstlisting}

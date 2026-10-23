@@ -25,6 +25,28 @@
 \usepackage{enumitem}
 \usepackage{fancyhdr}
 \usepackage[hidelinks]{hyperref}
+\usepackage{listings}
+\lstset{
+  language=Python,
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{blue!55!black}\bfseries,
+  commentstyle=\color{green!35!black},
+  stringstyle=\color{orange!65!black},
+  frame=single,
+  rulecolor=\color{black!35},
+  backgroundcolor=\color{gray!4},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  numbersep=6pt,
+  breaklines=true,
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false,
+  xleftmargin=1.5em,
+  framexleftmargin=1.2em,
+  aboveskip=0.8em,
+  belowskip=0.8em,
+}
 
 \sisetup{
   detect-all,
@@ -74,10 +96,22 @@
 \maketitle
 \thispagestyle{empty}
 
+\begin{center}
+\fbox{\parbox{0.91\textwidth}{\centering
+\textbf{开源信息}\quad
+\href{https://github.com/johnhlz/FEA}{\texttt{github.com/johnhlz/FEA}}\\[3pt]
+代码、CSV/JSON 结果、图和 LaTeX 源文件均在该仓库。
+}}
+\end{center}
+\vspace{0.4em}
+
 \input{sections/00_abstract}
 
 \newpage
+\begingroup
+\small
 \tableofcontents
+\endgroup
 \newpage
 
 \input{sections/01_intro}
